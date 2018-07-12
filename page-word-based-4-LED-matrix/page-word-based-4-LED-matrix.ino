@@ -7,7 +7,7 @@ int ledPinR2 = 13;
 
 int delayTime = 0;
 
-//LED wire layout
+//LED wire layout。 Use 6 pins to control 8 LEDS.
 
 //         c1    c2    c3    c4
 //
@@ -34,7 +34,7 @@ void setup() {
 }
 
 void loop() {
-  
+  //lights turn on based on pulsing
 turnOnA();
 delay(delayTime);
 turnOnB();
