@@ -1,4 +1,5 @@
 //**************************************************************************************
+//**************************************************************************************
 //                              POSTURE SENSOR PROJECT
 //
 //                      BY SIENNA WISHART AND JENNY XIA (GROUP 7)
@@ -8,6 +9,7 @@
 //                
 //             ALL CODE HEREIN IS WRITTEN BY SIENNA WISHART AND JENNY XIA
 //
+//**************************************************************************************
 //**************************************************************************************
 //                              SENSOR VARIABLE DECLARATION
 
@@ -20,9 +22,14 @@ int badPosturePin = 2; //input indicates if any bad posture is sensed
                          //(result of 4 OR gate from back, shoulders, and neck sensors)
 volatile bool badPosture = 0;
 
-bool timerP1 = false;
-bool timerP2 = false;
-bool timerP3 = false;
+//**************************************************************************************
+//                              TIMER VARIABLE DECLARATION
+
+volatile bool timerP1 = false;
+volatile bool timerP2 = false;
+volatile bool timerP3 = false;
+
+unsigned long int timer1_ovf = 0;
 
 //**************************************************************************************
 //                               LED VARIABLE DECLARATION
@@ -63,10 +70,11 @@ bool ledH = false; //bad neck posture
 
 void setup() {
   Serial.begin(9600); // enable serial monitor
-  TIMERS & INTERRUPTS
+  //TIMERS & INTERRUPTS
   TCCR1A = 0;  //reset  
   TCCR1B = 0;
   TCCR1B = 5;  //set timer1 prescaler to /1024
+  TIMSK1 = 0x1;
   
   attachInterrupt(digitalPinToInterrupt(badPosturePin), postureHandler, CHANGE);  
 
@@ -149,49 +157,6 @@ void loop() {
   turnOffLEDS(); 
   }
 
-/*
-if (ledA){
-  turnOnA();
-  delay(delayTime);
-}
-
-if (ledB){
-  turnOnB();
-  delay(delayTime);
-}
-
-if (ledC){
-  turnOnC();
-  delay(delayTime);
-}
-
-if (ledD){
-  turnOnD();
-  delay(delayTime);
-}
-
-if (ledE){
-  turnOnE();
-  delay(delayTime);
-}
-
-
-if (ledF){
-  turnOnF();
-  delay(delayTime);
-}
-
-if (ledG){
-  turnOnG();
-  delay(delayTime);
-}
-
-if (ledH){
-  turnOnH();
-  delay(delayTime);
-
-  }
-*/
 }
 
 
@@ -226,6 +191,25 @@ ISR (TIMER1_COMPB_vect) { //intermediate bad posture, after 100 seconds
   Serial.println("3s");
   timerP2 = true;
 }
+
+ISR(TIMER1_OVF_vect) {
+  timer1_ovf++;
+}
+
+//**************************************************************************************
+//                               TIMER FUNCTIONS
+
+float timer1Millis(){
+  //outputs runtime since reset in ms, for prescaler of 1024
+  //16Mhz/1024 = 15625
+  //1/15625 = 0.064ms (each event represents 0.064ms)
+  //timer1 holds 65535 events
+  //each overflow represents 4194.24ms
+  
+  float time = (float) timer1_ovf*(4194.24) + TCNT1*(0.064);
+  return time;
+}
+
 
 //**************************************************************************************
 //                               SENSOR FUNCTIONS
